@@ -1,0 +1,284 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DF663A5A-9000-4B22-B70A-AA6FA632B2AA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MongoDB.AsyncDriver</RootNamespace>
+    <AssemblyName>MongoDB.AsyncDriver</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Async\AsyncQueue.cs" />
+    <Compile Include="Async\AsyncDropbox.cs" />
+    <Compile Include="Async\AsyncStack.cs" />
+    <Compile Include="Async\InterruptibleDelay.cs" />
+    <Compile Include="Async\LazyAsyncEnumerator.cs" />
+    <Compile Include="Authentication\Authenticator.cs" />
+    <Compile Include="Authentication\Credentials\UsernamePasswordCredential.cs" />
+    <Compile Include="Authentication\Credentials\X509Credential.cs" />
+    <Compile Include="Authentication\IAuthenticationProtocol.cs" />
+    <Compile Include="Authentication\ICredential.cs" />
+    <Compile Include="Authentication\Protocols\OriginalAuthenticationProtocol.cs" />
+    <Compile Include="Authentication\Protocols\X509AuthenticationProtocol.cs" />
+    <Compile Include="Clusters\ClusterSettings.cs" />
+    <Compile Include="Nodes\WrappedNode.cs" />
+    <Compile Include="Clusters\Events\ClusterInfoChangedEventArgs.cs" />
+    <Compile Include="Clusters\Events\IClusterListener.cs" />
+    <Compile Include="Clusters\Events\NodeAddedEventArgs.cs" />
+    <Compile Include="Clusters\Events\NodeInfoChangedEventArgs.cs" />
+    <Compile Include="Clusters\Events\NodeRemovedEventArgs.cs" />
+    <Compile Include="Clusters\Events\PingedNodeEventArgs.cs" />
+    <Compile Include="Clusters\Events\PingingNodeEventArgs.cs" />
+    <Compile Include="Nodes\NodeSettings.cs" />
+    <Compile Include="Clusters\ClusterSettingsUriParser.cs" />
+    <Compile Include="Nodes\ReadableNode.cs" />
+    <Compile Include="Clusters\ReadPreferenceMode.cs" />
+    <Compile Include="Clusters\ReadPreferenceNodeSelector.cs" />
+    <Compile Include="Clusters\ReplicaSetInfo.cs" />
+    <Compile Include="Nodes\ShardedClusterNode.cs" />
+    <Compile Include="Nodes\ShardedClusterReadableNode.cs" />
+    <Compile Include="Nodes\ShardedClusterWritableNode.cs" />
+    <Compile Include="Clusters\Tag.cs" />
+    <Compile Include="Clusters\TagSet.cs" />
+    <Compile Include="Nodes\WritableNode.cs" />
+    <Compile Include="Connections\AcquiredConnection.cs" />
+    <Compile Include="Connections\ConnectionInitializer.cs" />
+    <Compile Include="Connections\ConnectionPool.cs" />
+    <Compile Include="Connections\ConnectionPoolFactory.cs" />
+    <Compile Include="Connections\WrappedConnection.cs" />
+    <Compile Include="Connections\DedicatedConnection.cs" />
+    <Compile Include="Connections\DedicatedConnectionPool.cs" />
+    <Compile Include="Connections\IConnectionPoolFactory.cs" />
+    <Compile Include="Connections\Events\IMessageListener.cs" />
+    <Compile Include="Connections\Events\ReceivedMessageEventArgs.cs" />
+    <Compile Include="Connections\Events\SendingMessageEventArgs.cs" />
+    <Compile Include="Connections\Events\SentMessageEventArgs.cs" />
+    <Compile Include="Connections\PooledConnection.cs" />
+    <Compile Include="Connections\ReadableConnection.cs" />
+    <Compile Include="Connections\SharedConnection.cs" />
+    <Compile Include="Connections\SharedConnectionPool.cs" />
+    <Compile Include="Connections\SharedConnectionPoolSettings.cs" />
+    <Compile Include="Connections\WritableConnection.cs" />
+    <Compile Include="IO\BsonPrimitiveReader.cs" />
+    <Compile Include="IO\BsonPrimitiveWriter.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\BinaryEncoderOpcode.cs" />
+    <Compile Include="Messages\Encoders\IEncodableMessage.cs" />
+    <Compile Include="Messages\MongoDBMessage.cs" />
+    <Compile Include="Misc\TimeSpanParser.cs" />
+    <Compile Include="Mock\IMockServer.cs" />
+    <Compile Include="Mock\MockConnection.cs" />
+    <Compile Include="Mock\MockConnectionFactory.cs" />
+    <Compile Include="Mock\MockConnectionPool.cs" />
+    <Compile Include="Mock\MockConnectionPoolFactory.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\DeleteMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\GetMoreMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\InsertMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\KillCursorsMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\QueryMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\ReplyMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\UpdateMessageBinaryEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\JsonMessageEncoderFactory.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\DeleteMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\GetMoreMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\InsertMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\KillCursorsMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\QueryMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\ReplyMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\JsonEncoders\UpdateMessageJsonEncoder.cs" />
+    <Compile Include="Messages\Encoders\IMessageEncoderFactory.cs" />
+    <Compile Include="Messages\Encoders\IMessageEncoder.cs" />
+    <Compile Include="Bson\BsonExtensionMethods.cs" />
+    <Compile Include="Messages\Encoders\BinaryEncoders\BinaryMessageEncoderFactory.cs" />
+    <Compile Include="Connections\ConnectionExtensionMethods.cs" />
+    <Compile Include="IO\IBsonReader.cs" />
+    <Compile Include="IO\IBsonWriter.cs" />
+    <Compile Include="IO\Json.cs" />
+    <Compile Include="IO\JsonWriter.cs" />
+    <Compile Include="Messages\InsertBatch.cs" />
+    <Compile Include="Messages\RequestMessage.cs" />
+    <Compile Include="Misc\Batch.cs" />
+    <Compile Include="Misc\BatchResult.cs" />
+    <Compile Include="Operations\AggregateOperation.cs" />
+    <Compile Include="Operations\AggregateOutputMode.cs" />
+    <Compile Include="Operations\Collection.cs" />
+    <Compile Include="Operations\CollectionExistsOperation.cs" />
+    <Compile Include="Operations\CollectionExtensionMethods.cs" />
+    <Compile Include="Operations\CommandException.cs" />
+    <Compile Include="Operations\CountOperation.cs" />
+    <Compile Include="Operations\CreateCollectionOperation.cs" />
+    <Compile Include="Operations\CreateIndexOperation.cs" />
+    <Compile Include="Operations\Database.cs" />
+    <Compile Include="Operations\DatabaseExistsOperation.cs" />
+    <Compile Include="Operations\DatabaseExtensionMethods.cs" />
+    <Compile Include="Operations\DeleteRequest.cs" />
+    <Compile Include="Operations\DeleteCommandOperation.cs" />
+    <Compile Include="Operations\DistinctOperation.cs" />
+    <Compile Include="Operations\DropDatabaseOperation.cs" />
+    <Compile Include="Operations\DropIndexOperation.cs" />
+    <Compile Include="Operations\EvalOperation.cs" />
+    <Compile Include="Operations\FindAndModifyOperation.cs" />
+    <Compile Include="Operations\FindAndModifyDocumentVersion.cs" />
+    <Compile Include="Operations\FindAndRemoveOperation.cs" />
+    <Compile Include="Operations\GetLastError.cs" />
+    <Compile Include="Operations\GroupOperation.cs" />
+    <Compile Include="Operations\IndexExistsOperation.cs" />
+    <Compile Include="Operations\InsertOpcodeOperation.cs" />
+    <Compile Include="Operations\IOperation.cs" />
+    <Compile Include="Operations\ListCollectionsOperation.cs" />
+    <Compile Include="Operations\ListDatabasesOperation.cs" />
+    <Compile Include="Operations\MapReduceOperation.cs" />
+    <Compile Include="Operations\MapReduceOutputMode.cs" />
+    <Compile Include="Operations\MongoDBException.cs" />
+    <Compile Include="IO\StreamExtensionMethods.cs" />
+    <Compile Include="Async\TakeAsyncEnumerable.cs" />
+    <Compile Include="Async\TakeWhileAsyncEnumerable.cs" />
+    <Compile Include="Async\TaskExtensionMethods.cs" />
+    <Compile Include="Bson\BsonArray.cs" />
+    <Compile Include="Bson\BsonBinaryData.cs" />
+    <Compile Include="Bson\BinarySubType.cs" />
+    <Compile Include="IO\BsonReader.cs" />
+    <Compile Include="IO\BsonWriter.cs" />
+    <Compile Include="Bson\BsonBoolean.cs" />
+    <Compile Include="Bson\BsonDateTime.cs" />
+    <Compile Include="Bson\BsonDocument.cs" />
+    <Compile Include="Operations\GetLastErrorException.cs" />
+    <Compile Include="Operations\OperationExtensionMethods.cs" />
+    <Compile Include="Operations\QueryException.cs" />
+    <Compile Include="Operations\ReadCommandOperation.cs" />
+    <Compile Include="Operations\RenameCollectionOperation.cs" />
+    <Compile Include="Operations\UpdateCommandOperation.cs" />
+    <Compile Include="Operations\UpdateRequest.cs" />
+    <Compile Include="Operations\UpdateOpcodeOperation.cs" />
+    <Compile Include="Operations\WriteCommandOperation.cs" />
+    <Compile Include="Serialization\BsonDocumentSerializer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Bson\BsonDouble.cs" />
+    <Compile Include="Bson\BsonElement.cs" />
+    <Compile Include="Bson\BsonInt32.cs" />
+    <Compile Include="Bson\BsonInt64.cs" />
+    <Compile Include="Bson\BsonJavaScript.cs" />
+    <Compile Include="Bson\BsonMaxKey.cs" />
+    <Compile Include="Bson\BsonMinKey.cs" />
+    <Compile Include="Bson\BsonNull.cs" />
+    <Compile Include="Bson\BsonObjectId.cs" />
+    <Compile Include="Bson\BsonRegularExpression.cs" />
+    <Compile Include="Bson\BsonString.cs" />
+    <Compile Include="Bson\BsonSymbol.cs" />
+    <Compile Include="Bson\BsonTimestamp.cs" />
+    <Compile Include="Bson\BsonType.cs" />
+    <Compile Include="Bson\BsonUndefined.cs" />
+    <Compile Include="Bson\BsonValue.cs" />
+    <Compile Include="Bson\GuidConverter.cs" />
+    <Compile Include="Bson\GuidRepresentation.cs" />
+    <Compile Include="Serialization\IBsonSerializer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Bson\ObjectId.cs" />
+    <Compile Include="Clusters\Cluster.cs" />
+    <Compile Include="Clusters\ClusterInfo.cs" />
+    <Compile Include="Clusters\ClusterState.cs" />
+    <Compile Include="Clusters\ClusterType.cs" />
+    <Compile Include="Clusters\ICluster.cs" />
+    <Compile Include="Nodes\INode.cs" />
+    <Compile Include="Nodes\NodeInfo.cs" />
+    <Compile Include="Nodes\NodeState.cs" />
+    <Compile Include="Nodes\NodeType.cs" />
+    <Compile Include="Clusters\ReplicaSetConfig.cs" />
+    <Compile Include="Clusters\ReplicaSetMemberType.cs" />
+    <Compile Include="Operations\BatchCursor.cs" />
+    <Compile Include="Operations\CommandOperationBase.cs" />
+    <Compile Include="Operations\DeleteOpcodeOperation.cs" />
+    <Compile Include="Operations\DocumentCursor.cs" />
+    <Compile Include="Operations\DropCollectionOperation.cs" />
+    <Compile Include="Nodes\Node.cs" />
+    <Compile Include="Clusters\ReadPreference.cs" />
+    <Compile Include="Clusters\ReplicaSet.cs" />
+    <Compile Include="Clusters\ShardedCluster.cs" />
+    <Compile Include="Clusters\DirectCluster.cs" />
+    <Compile Include="Clusters\StandaloneCluster.cs" />
+    <Compile Include="Operations\FindOperation.cs" />
+    <Compile Include="Operations\FindOneOperation.cs" />
+    <Compile Include="Operations\InsertCommandOperation.cs" />
+    <Compile Include="Operations\WriteConcern.cs" />
+    <Compile Include="IO\BufferPool.cs" />
+    <Compile Include="Connections\ConnectionException.cs" />
+    <Compile Include="Connections\DedicatedConnectionPoolSettings.cs" />
+    <Compile Include="Connections\IConnectionFactory.cs" />
+    <Compile Include="Connections\IConnectionPool.cs" />
+    <Compile Include="Connections\IStreamFactory.cs" />
+    <Compile Include="Connections\TcpStreamFactory.cs" />
+    <Compile Include="Connections\TcpStreamSettings.cs" />
+    <Compile Include="Connections\BinaryConnection.cs" />
+    <Compile Include="Connections\IConnection.cs" />
+    <Compile Include="Connections\BinaryConnectionFactory.cs" />
+    <Compile Include="IO\BufferStream.cs" />
+    <Compile Include="Messages\DeleteMessage.cs" />
+    <Compile Include="Messages\GetMoreMessage.cs" />
+    <Compile Include="IO\IBuffer.cs" />
+    <Compile Include="IO\IBufferPool.cs" />
+    <Compile Include="Messages\InsertMessage.cs" />
+    <Compile Include="Messages\KillCursorsMessage.cs" />
+    <Compile Include="Messages\QueryMessage.cs" />
+    <Compile Include="Messages\ReplyMessage.cs" />
+    <Compile Include="Messages\UpdateMessage.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Misc\Constants.cs" />
+    <Compile Include="Misc\SlidingTimeout.cs" />
+    <Compile Include="Async\EmptyAsyncEnumerable.cs" />
+    <Compile Include="Misc\DnsEndPointParser.cs" />
+    <Compile Include="Misc\EnumerableExtensionMethods.cs" />
+    <Compile Include="Async\EnumerableAsync.cs" />
+    <Compile Include="Misc\Hasher.cs" />
+    <Compile Include="Misc\Hex.cs" />
+    <Compile Include="Async\IAsyncEnumerable.cs" />
+    <Compile Include="Async\IAsyncEnumerator.cs" />
+    <Compile Include="Async\SkipAsyncEnumerable.cs" />
+    <Compile Include="Async\SkipWhileAsyncEnumerable.cs" />
+    <Compile Include="Misc\Utils.cs" />
+    <Compile Include="Wrappers\IsMasterWrapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.md" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
