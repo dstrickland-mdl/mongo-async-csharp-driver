@@ -34,13 +34,12 @@ namespace MongoDB.AsyncDriver
         private readonly string _databaseName;
         private bool _disposed;
         private List<TDocument> _firstBatch;
-        private bool _ownsConnection;
         private readonly BsonDocument _query;
         private readonly IBsonSerializer<TDocument> _serializer;
         private readonly SlidingTimeout _slidingTimeout;
 
         // constructors
-        public BatchCursor(IConnection connection, bool ownsConnection, string databaseName, string collectionName, BsonDocument query, List<TDocument> firstBatch, long cursorId, int batchSize, IBsonSerializer<TDocument> serializer, SlidingTimeout slidingTimeout, CancellationToken cancellationToken)
+        public BatchCursor(IConnection connection, string databaseName, string collectionName, BsonDocument query, List<TDocument> firstBatch, long cursorId, int batchSize, IBsonSerializer<TDocument> serializer, SlidingTimeout slidingTimeout, CancellationToken cancellationToken)
         {
             if (connection == null) { throw new ArgumentNullException("connection"); }
             if (databaseName == null) { throw new ArgumentNullException("databaseName"); }
@@ -48,8 +47,7 @@ namespace MongoDB.AsyncDriver
             if (firstBatch == null) { throw new ArgumentNullException("firstBatch"); }
             if (serializer == null) { throw new ArgumentNullException("serializer"); }
 
-            _connection = connection;
-            _ownsConnection = ownsConnection;
+            _connection = (cursorId != 0) ? connection.Fork() : null;
             _databaseName = databaseName;
             _collectionName = collectionName;
             _query = query;
@@ -86,7 +84,7 @@ namespace MongoDB.AsyncDriver
                 {
                     // ignore exceptions
                 }
-                if (_ownsConnection)
+                if (_connection != null)
                 {
                     _connection.Dispose();
                 }

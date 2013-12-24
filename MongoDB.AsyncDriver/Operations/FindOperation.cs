@@ -239,25 +239,20 @@ namespace MongoDB.AsyncDriver
             return wrappedQuery;
         }
 
-        public Task<DocumentCursor<TDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DocumentCursor<TDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ExecuteAsync(connection, false, timeout, cancellationToken);
-        }
-
-        public async Task<DocumentCursor<TDocument>> ExecuteAsync(IReadableConnection connection, bool letCursorOwnConnection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var batchCursor = await ExecuteBatchAsync(connection, letCursorOwnConnection, timeout, cancellationToken);
+            var batchCursor = await ExecuteBatchAsync(connection, timeout, cancellationToken);
             return new DocumentCursor<TDocument>(batchCursor, _limit);
         }
 
-        public async Task<BatchCursor<TDocument>> ExecuteBatchAsync(IReadableConnection connection, bool letCursorOwnConnection = false, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<BatchCursor<TDocument>> ExecuteBatchAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
             var slidingTimeout = new SlidingTimeout(timeout);
 
             var message = CreateMessage(connection.Node);
             await connection.SendMessageAsync(message, slidingTimeout, cancellationToken);
             var reply = await connection.ReceiveMessageAsync<TDocument>(message.RequestId, _serializer, slidingTimeout, cancellationToken);
-            return ProcessReply(reply, connection, letCursorOwnConnection, slidingTimeout, cancellationToken);
+            return ProcessReply(reply, connection, slidingTimeout, cancellationToken);
         }
 
         public async Task<BsonDocument> ExplainAsync(IReadableConnection connection, bool verbose = false, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
@@ -273,12 +268,12 @@ namespace MongoDB.AsyncDriver
                 .WithAdditionalOptions(additionalOptions)
                 .WithLimit(-Math.Abs(_limit ?? 0))
                 .WithSerializer<BsonDocument>(BsonDocumentSerializer.Instance);
-            var documentCursor = await operation.ExecuteAsync(connection, false, timeout, cancellationToken);
+            var documentCursor = await operation.ExecuteAsync(connection, timeout, cancellationToken);
             await documentCursor.MoveNextAsync();
             return documentCursor.Current;
         }
 
-        private BatchCursor<TDocument> ProcessReply(ReplyMessage<TDocument> reply, IReadableConnection connection, bool letCursorOwnConnection, SlidingTimeout slidingTimeout, CancellationToken cancellationToken)
+        private BatchCursor<TDocument> ProcessReply(ReplyMessage<TDocument> reply, IReadableConnection connection, SlidingTimeout slidingTimeout, CancellationToken cancellationToken)
         {
             if (reply.QueryFailure)
             {
@@ -287,7 +282,7 @@ namespace MongoDB.AsyncDriver
 
             var firstBatch = reply.Documents;
             var cursorId = reply.CursorId;
-            return new BatchCursor<TDocument>(connection, letCursorOwnConnection, _databaseName, _collectionName, _query, firstBatch, cursorId, _batchSize, _serializer, slidingTimeout, cancellationToken);
+            return new BatchCursor<TDocument>(connection, _databaseName, _collectionName, _query, firstBatch, cursorId, _batchSize, _serializer, slidingTimeout, cancellationToken);
         }
 
         public FindOperation<TDocument> WithAdditionalOptions(BsonDocument value)
