@@ -24,24 +24,24 @@ namespace MongoDB.AsyncDriver
     public class BatchResult<T>
     {
         // fields
+        private readonly int _batchCount;
         private IReadOnlyList<T> _batchItems;
         private readonly int _batchLength;
-        private readonly bool _isLast;
         private readonly Batch<T> _nextBatch;
 
         // constructors
-        public BatchResult(IReadOnlyList<T> batchItems, int batchLength, Batch<T> nextBatch)
+        public BatchResult(int batchCount, int batchLength, IReadOnlyList<T> batchItems, Batch<T> nextBatch)
         {
-            _batchItems = batchItems;
+            _batchCount = batchCount;
             _batchLength = batchLength;
+            _batchItems = batchItems;
             _nextBatch = nextBatch;
-            _isLast = (nextBatch == null);
         }
 
         // properties
         public int BatchCount
         {
-            get { return _batchItems.Count; }
+            get { return _batchCount; }
         }
 
         public IReadOnlyList<T> BatchItems
@@ -56,7 +56,7 @@ namespace MongoDB.AsyncDriver
 
         public bool IsLast
         {
-            get { return _isLast; }
+            get { return _nextBatch == null; }
         }
 
         public Batch<T> NextBatch

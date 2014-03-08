@@ -126,7 +126,6 @@
     <Compile Include="IO\IBsonWriter.cs" />
     <Compile Include="IO\Json.cs" />
     <Compile Include="IO\JsonWriter.cs" />
-    <Compile Include="Messages\InsertBatch.cs" />
     <Compile Include="Messages\RequestMessage.cs" />
     <Compile Include="Misc\Batch.cs" />
     <Compile Include="Misc\BatchResult.cs" />

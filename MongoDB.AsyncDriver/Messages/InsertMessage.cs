@@ -28,7 +28,7 @@ namespace MongoDB.AsyncDriver
         private readonly string _collectionName;
         private readonly bool _continueOnError;
         private readonly string _databaseName;
-        private readonly InsertBatch<TDocument> _documents;
+        private readonly Batch<TDocument> _documents;
         private readonly int _maxBatchCount;
         private readonly int _maxBatchLength;
         private readonly IBsonSerializer<TDocument> _serializer;
@@ -39,7 +39,7 @@ namespace MongoDB.AsyncDriver
             string databaseName,
             string collectionName,
             IBsonSerializer<TDocument> serializer,
-            InsertBatch<TDocument> documents,
+            Batch<TDocument> documents,
             int maxBatchCount,
             int maxBatchLength,
             bool continueOnError)
@@ -70,7 +70,7 @@ namespace MongoDB.AsyncDriver
             get { return _databaseName; }
         }
 
-        public InsertBatch<TDocument> Documents
+        public Batch<TDocument> Documents
         {
             get { return _documents; }
         }

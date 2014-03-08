@@ -130,7 +130,7 @@ namespace MongoDB.AsyncDriver
         }
 
         // methods
-        private InsertMessage<TDocument> CreateMessage(IConnection connection, InsertBatch<TDocument> batch)
+        private InsertMessage<TDocument> CreateMessage(IConnection connection, Batch<TDocument> batch)
         {
             return new InsertMessage<TDocument>(
                 RequestMessage.GetNextRequestId(),
@@ -147,12 +147,12 @@ namespace MongoDB.AsyncDriver
         {
             using (var enumerator = _documents.GetEnumerator())
             {
-                var batch = new InsertBatch<TDocument>.FirstBatch(enumerator, false);
+                var batch = new FirstBatch<TDocument>(enumerator, false);
                 return await ExecuteBatchAsync(connection, batch, timeout, cancellationToken);
             }
         }
 
-        public async Task<BsonDocument> ExecuteBatchAsync(IConnection connection, InsertBatch<TDocument> batch, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<BsonDocument> ExecuteBatchAsync(IConnection connection, Batch<TDocument> batch, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
             var slidingTimeout = new SlidingTimeout(timeout);
 

@@ -21,75 +21,118 @@ using System.Threading.Tasks;
 
 namespace MongoDB.AsyncDriver
 {
-    public abstract class Batch<T>
+    public abstract class Batch<TItem>
     {
         // fields
-        private readonly IEnumerator<T> _enumerator;
-        private BatchResult<T> _batchResult;
+        private readonly IEnumerator<TItem> _enumerator;
+        private BatchResult<TItem> _result;
 
         // constructors
-        protected Batch(IEnumerator<T> enumerator)
+        protected Batch(IEnumerator<TItem> enumerator)
         {
             _enumerator = enumerator;
         }
 
         // properties
-        public BatchResult<T> BatchResult
-        {
-            get { return _batchResult; }
-            internal set { _batchResult = value; }
-        }
-
         public abstract bool CanBeSplit { get; }
 
-        internal IEnumerator<T> Enumerator
+        internal IEnumerator<TItem> Enumerator
         {
             get { return _enumerator; }
         }
 
-        // nested types
-        public class ContinuationBatch<TOverflow> : Batch<T>
+        public virtual IEnumerable<TItem> RemainingItems
         {
-            // fields
-            private TOverflow _overflow;
-
-            // constructors
-            public ContinuationBatch(IEnumerator<T> enumerator, TOverflow overflow)
-                : base(enumerator)
+            get
             {
-                _overflow = overflow;
-            }
-
-            // properties
-            public override bool CanBeSplit
-            {
-                get { return true; }
-            }
-
-            public TOverflow Overflow
-            {
-                get { return _overflow; }
-                set { _overflow = value; }
+                while (_enumerator.MoveNext())
+                {
+                    yield return _enumerator.Current;
+                }
             }
         }
 
-        public class FirstBatch : Batch<T>
+        public BatchResult<TItem> Result
         {
-            // fields
-            private readonly bool _canBeSplit;
+            get { return _result; }
+        }
 
-            // constructors
-            public FirstBatch(IEnumerator<T> enumerator, bool canBeSplit = true)
-                : base(enumerator)
-            {
-                _canBeSplit = canBeSplit;
-            }
+        // methods
+        internal void SetResult(BatchResult<TItem> result)
+        {
+            _result = result;
+        }
+    }
 
-            // properties
-            public override bool CanBeSplit
+    public class ContinuationBatch<TItem, TState> : Batch<TItem>
+    {
+        // fields
+        private TItem _pendingItem;
+        private TState _pendingState;
+
+        // constructors
+        public ContinuationBatch(IEnumerator<TItem> enumerator, TItem pendingItem, TState pendingState)
+            : base(enumerator)
+        {
+            _pendingItem = pendingItem;
+            _pendingState = pendingState;
+        }
+
+        // properties
+        public override bool CanBeSplit
+        {
+            get { return true; }
+        }
+
+        public TItem PendingItem
+        {
+            get { return _pendingItem; }
+        }
+
+        public TState PendingState
+        {
+            get { return _pendingState; }
+        }
+
+        public override IEnumerable<TItem> RemainingItems
+        {
+            get
             {
-                get { return _canBeSplit; }
+                if (_pendingItem != null)
+                {
+                    yield return _pendingItem;
+                }
+                foreach (var item in base.RemainingItems)
+                {
+                    yield return item;
+                }
             }
+        }
+
+        // methods
+        public void ClearPending()
+        {
+            _pendingItem = default(TItem);
+            _pendingState = default(TState);
+        }
+    }
+
+    public class FirstBatch<TItem> : Batch<TItem>
+    {
+        // fields
+        private readonly bool _canBeSplit;
+
+        // constructors
+        public FirstBatch(IEnumerator<TItem> enumerator, bool canBeSplit = true)
+            : base(enumerator)
+        {
+            _canBeSplit = canBeSplit;
+        }
+
+        // properties
+        public override bool CanBeSplit
+        {
+            get { return _canBeSplit; }
         }
     }
 }

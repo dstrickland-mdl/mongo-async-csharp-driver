@@ -41,11 +41,12 @@ namespace MongoDB.AsyncDriver
         }
 
         // methods
-        private void AddDocument(BsonPrimitiveWriter primitiveWriter, byte[] document, ProgressTracker tracker)
+        private void AddDocument(BsonPrimitiveWriter primitiveWriter, TDocument document, byte[] serializedDocument, ProgressTracker tracker)
         {
-            primitiveWriter.WriteBytes(document);
+            primitiveWriter.WriteBytes(serializedDocument);
             tracker.BatchCount++;
             tracker.BatchLength = (int)_stream.Position - tracker.BatchStartPosition;
+            tracker.Documents.Add(document);
         }
 
         private void AddDocument(BsonWriter bsonWriter, TDocument document, ProgressTracker tracker)
@@ -53,6 +54,7 @@ namespace MongoDB.AsyncDriver
             _serializer.Serialize(bsonWriter, document);
             tracker.BatchCount++;
             tracker.BatchLength = (int)_stream.Position - tracker.BatchStartPosition;
+            tracker.Documents.Add(document);
         }
 
         private InsertFlags BuildInsertFlags(InsertMessage<TDocument> message)
@@ -88,7 +90,7 @@ namespace MongoDB.AsyncDriver
             var databaseName = fullCollectionName.Substring(0, firstDot);
             var collectionName = fullCollectionName.Substring(firstDot + 1);
 
-            var batch = new InsertBatch<TDocument>.FirstBatch(documents.GetEnumerator(), canBeSplit: false);
+            var batch = new FirstBatch<TDocument>(documents.GetEnumerator(), canBeSplit: false);
             var maxBatchCount = 0;
             var maxBatchLength = 0;
             var continueOnError = false;
@@ -108,13 +110,14 @@ namespace MongoDB.AsyncDriver
         {
             var documentLength = (int)_stream.Position - documentStartPosition;
             _stream.Position = documentStartPosition;
-            var document = new byte[documentLength];
-            _stream.FillBuffer(document, 0, documentLength);
+            var serializedDocument = new byte[documentLength];
+            _stream.FillBuffer(serializedDocument, 0, documentLength);
             _stream.Position = documentStartPosition;
             _stream.SetLength(documentStartPosition);
             tracker.BatchCount--;
             tracker.BatchLength = (int)_stream.Position - tracker.BatchStartPosition;
-            return document;
+            tracker.Documents.RemoveAt(tracker.Documents.Count - 1);
+            return serializedDocument;
         }
 
         private void WriteDocuments(BsonPrimitiveWriter primitiveWriter, int batchStartPosition, InsertMessage<TDocument> message)
@@ -122,13 +125,15 @@ namespace MongoDB.AsyncDriver
             var bsonWriter = new BsonWriter(primitiveWriter);
             var batch = message.Documents;
 
-            var tracker = new ProgressTracker { BatchStartPosition = batchStartPosition };
+            var tracker = new ProgressTracker { BatchStartPosition = batchStartPosition, Documents = new List<TDocument>() };
 
-            var continuationBatch = batch as ContinuationBatch;
+            var continuationBatch = batch as ContinuationBatch<TDocument, byte[]>;
             if (continuationBatch != null)
             {
-                AddDocument(primitiveWriter, continuationBatch.Overflow, tracker);
-                continuationBatch.Overflow = null; // so it can get garbage collected sooner
+                var document = continuationBatch.PendingItem;
+                var serializedDocument = continuationBatch.PendingState;
+                AddDocument(primitiveWriter, document, serializedDocument, tracker);
+                continuationBatch.ClearPending(); // so it can get garbage collected sooner
             }
 
             var enumerator = batch.Enumerator;
@@ -140,19 +145,23 @@ namespace MongoDB.AsyncDriver
 
                 if ((tracker.BatchCount > message.MaxBatchCount || tracker.BatchLength > message.MaxBatchLength) && tracker.BatchCount > 1)
                 {
-                    var firstBatch = batch as InsertBatch<TDocument>.FirstBatch;
+                    var firstBatch = batch as FirstBatch<TDocument>;
                     if (firstBatch != null && !firstBatch.CanBeSplit)
                     {
                         throw new ArgumentException("The documents did not fit in a single batch.");
                     }
 
-                    var overflow = RemoveLastDocument(documentStartPosition, tracker);
-                    var nextBatch = new ContinuationBatch(enumerator, overflow);
-                    batch.SetBatchResults(tracker.BatchCount, tracker.BatchLength, null, nextBatch);
+                    var serializedDocument = RemoveLastDocument(documentStartPosition, tracker);
+                    var nextBatch = new ContinuationBatch<TDocument, byte[]>(enumerator, document, serializedDocument);
+                    var intermediateBatchResult = new BatchResult<TDocument>(tracker.BatchCount, tracker.BatchLength, tracker.Documents, nextBatch);
+                    batch.SetResult(intermediateBatchResult);
+                    return;
                 }
+
             }
 
-            batch.SetBatchResults(tracker.BatchCount, tracker.BatchLength, null, null);
+            var lastBatchResult = new BatchResult<TDocument>(tracker.BatchCount, tracker.BatchLength, tracker.Documents, null);
+            batch.SetResult(lastBatchResult);
         }
 
         public void WriteMessage(InsertMessage<TDocument> message)
@@ -182,27 +191,6 @@ namespace MongoDB.AsyncDriver
             WriteMessage((InsertMessage<TDocument>)message);
         }
 
-        // nested types
-        private class ContinuationBatch : InsertBatch<TDocument>
-        {
-            // fields
-            private byte[] _overflow;
-
-            // constructor
-            public ContinuationBatch(IEnumerator<TDocument> enumerator, byte[] overflow)
-                : base(enumerator)
-            {
-                _overflow = overflow;
-            }
-
-            // properties
-            public byte[] Overflow
-            {
-                get { return _overflow; }
-                set { _overflow = value; }
-            }
-        }
-
         [Flags]
         private enum InsertFlags
         {
@@ -210,11 +198,12 @@ namespace MongoDB.AsyncDriver
             ContinueOnError = 1
         }
 
-        private struct ProgressTracker
+        private class ProgressTracker
         {
-            public int BatchStartPosition;
             public int BatchCount;
             public int BatchLength;
+            public int BatchStartPosition;
+            public List<TDocument> Documents;
         }
     }
 }
