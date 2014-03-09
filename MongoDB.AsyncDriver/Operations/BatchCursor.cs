@@ -145,6 +145,11 @@ namespace MongoDB.AsyncDriver
             return true;
         }
 
+        public DocumentCursor<TDocument> ToDocumentCursor()
+        {
+            return new DocumentCursor<TDocument>(this);
+        }
+
         // nested classes
         private struct Batch
         {

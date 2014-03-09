@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace MongoDB.AsyncDriver
 {
-    public class AggregateOperation : IReadOperation<DocumentCursor<BsonDocument>>
+    public class AggregateOperation : IReadOperation<BatchCursor<BsonDocument>>
     {
         // fields
         private readonly bool? _allowDiskUsage;
@@ -35,6 +35,12 @@ namespace MongoDB.AsyncDriver
         // constructors
         public AggregateOperation(string databaseName, string collectionName, IEnumerable<BsonDocument> pipeline)
         {
+            if (databaseName == null) { throw new ArgumentNullException("databaseName"); }
+            if (databaseName == "") { throw new ArgumentException("Database name is empty.", "databaseName"); }
+            if (collectionName == null) { throw new ArgumentNullException("collectionName"); }
+            if (collectionName == "") { throw new ArgumentException("Collection name is empty.", "collectionName"); }
+            if (pipeline == null) { throw new ArgumentNullException("pipeline"); }
+
             _databaseName = databaseName;
             _collectionName = collectionName;
             _pipeline = pipeline.ToList();
@@ -108,29 +114,15 @@ namespace MongoDB.AsyncDriver
             };
         }
 
-        public async Task<DocumentCursor<BsonDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<BatchCursor<BsonDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
-            var batchCursor = await ExecuteBatchAsync(connection, timeout, cancellationToken);
-            return new DocumentCursor<BsonDocument>(batchCursor);
-        }
-
-        public async Task<BsonDocument> ExecuteCommandAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var command = CreateCommand();
-            var operation = new ReadCommandOperation(_databaseName, command);
-            return await operation.ExecuteAsync(connection, timeout, cancellationToken);
-        }
-
-        public async Task<BatchCursor<BsonDocument>> ExecuteBatchAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var slidingTimeout = new SlidingTimeout(timeout);
-
-            var withOutputMode = this.WithOutputMode(AggregateOutputMode.Cursor);
-            if (!object.ReferenceEquals(withOutputMode, this))
+            if (connection == null) { throw new ArgumentNullException("connection");  }
+            if (_outputMode != AggregateOutputMode.Cursor)
             {
-                return await withOutputMode.ExecuteBatchAsync(connection, slidingTimeout, cancellationToken);
+                throw new ArgumentException("OutputMode is not Cursor.");
             }
 
+            var slidingTimeout = new SlidingTimeout(timeout);
             var command = CreateCommand();
             var operation = new ReadCommandOperation(_databaseName, command);
             var result = await operation.ExecuteAsync(connection, slidingTimeout, cancellationToken);
@@ -141,32 +133,38 @@ namespace MongoDB.AsyncDriver
             return new BatchCursor<BsonDocument>(connection, _databaseName, _collectionName, command, firstBatch, cursorId, _batchSize ?? 0, serializer, slidingTimeout, cancellationToken);
         }
 
-        public async Task<IEnumerable<BsonDocument>> ExecuteInlineAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IReadOnlyList<BsonDocument>> ExecuteInlineAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
-            var withOutputMode = this.WithOutputMode(AggregateOutputMode.Inline);
-            if (!object.ReferenceEquals(withOutputMode, this))
+            if (connection == null) { throw new ArgumentNullException("connection"); }
+            if (_outputMode != AggregateOutputMode.Inline)
             {
-                return await withOutputMode.ExecuteInlineAsync(connection, timeout, cancellationToken);
+                throw new ArgumentException("OutputMode is not Inline.");
             }
 
-            var result = await ExecuteCommandAsync(connection, timeout, cancellationToken);
-            return result["result"].AsBsonArray().Cast<BsonDocument>();
+            var command = CreateCommand();
+            var operation = new ReadCommandOperation(_databaseName, command);
+            var result = await operation.ExecuteAsync(connection, timeout, cancellationToken);
+
+            return result["result"].AsBsonArray().Cast<BsonDocument>().ToList();
         }
 
         public async Task ExecuteOutputToCollectionAsync(IWritableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
-            var withOutputMode = this.WithOutputMode(AggregateOutputMode.Collection);
-            if (!object.ReferenceEquals(withOutputMode, this))
+            if (connection == null) { throw new ArgumentNullException("connection"); }
+            if (_outputMode != AggregateOutputMode.Collection)
             {
-                await withOutputMode.ExecuteOutputToCollectionAsync(connection, timeout, cancellationToken);
-                return;
+                throw new ArgumentException("OutputMode is not Collection.");
             }
 
-            await ExecuteCommandAsync(connection, timeout, cancellationToken);
+            var command = CreateCommand();
+            var operation = new WriteCommandOperation(_databaseName, command);
+            await operation.ExecuteAsync(connection, timeout, cancellationToken);
         }
 
         public async Task<BsonDocument> ExplainAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (connection == null) { throw new ArgumentNullException("connection"); }
+
             var command = CreateCommand();
             command["explain"] = true;
             var operation = new ReadCommandOperation(_databaseName, command);
@@ -185,11 +183,15 @@ namespace MongoDB.AsyncDriver
 
         public AggregateOperation WithCollectionName(string value)
         {
+            if (value == null) { throw new ArgumentNullException("value"); }
+            if (value == "") { throw new ArgumentException("Collection name is empty.", "value"); }
             return (_collectionName == value) ? this : new Builder(this) { _collectionName = value }.Build();
         }
 
         public AggregateOperation WithDatabaseName(string value)
         {
+            if (value == null) { throw new ArgumentNullException("value"); }
+            if (value == "") { throw new ArgumentException("Database name is empty.", "value"); }
             return (_databaseName == value) ? this : new Builder(this) { _databaseName = value }.Build();
         }
 
@@ -200,6 +202,7 @@ namespace MongoDB.AsyncDriver
 
         public AggregateOperation WithPipeline(IReadOnlyList<BsonDocument> value)
         {
+            if (value == null) { throw new ArgumentNullException("value"); }
             return (_pipeline == value) ? this : new Builder(this) { _pipeline = value }.Build();
         }
 

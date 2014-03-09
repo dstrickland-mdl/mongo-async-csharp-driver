@@ -35,7 +35,7 @@ namespace MongoDB.AsyncDriver
         }
     }
 
-    public class FindOperation<TDocument> : IReadOperation<DocumentCursor<TDocument>>
+    public class FindOperation<TDocument> : IReadOperation<BatchCursor<TDocument>>
     {
         // fields
         private readonly BsonDocument _additionalOptions;
@@ -239,13 +239,7 @@ namespace MongoDB.AsyncDriver
             return wrappedQuery;
         }
 
-        public async Task<DocumentCursor<TDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var batchCursor = await ExecuteBatchAsync(connection, timeout, cancellationToken);
-            return new DocumentCursor<TDocument>(batchCursor, _limit);
-        }
-
-        public async Task<BatchCursor<TDocument>> ExecuteBatchAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<BatchCursor<TDocument>> ExecuteAsync(IReadableConnection connection, TimeSpan timeout = default(TimeSpan), CancellationToken cancellationToken = default(CancellationToken))
         {
             var slidingTimeout = new SlidingTimeout(timeout);
 
@@ -268,9 +262,9 @@ namespace MongoDB.AsyncDriver
                 .WithAdditionalOptions(additionalOptions)
                 .WithLimit(-Math.Abs(_limit ?? 0))
                 .WithSerializer<BsonDocument>(BsonDocumentSerializer.Instance);
-            var documentCursor = await operation.ExecuteAsync(connection, timeout, cancellationToken);
-            await documentCursor.MoveNextAsync();
-            return documentCursor.Current;
+            var cursor = await operation.ExecuteAsync(connection, timeout, cancellationToken);
+            await cursor.MoveNextAsync();
+            return cursor.Current.First();
         }
 
         private BatchCursor<TDocument> ProcessReply(ReplyMessage<TDocument> reply, IReadableConnection connection, SlidingTimeout slidingTimeout, CancellationToken cancellationToken)

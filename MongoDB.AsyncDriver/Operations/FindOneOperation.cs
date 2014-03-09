@@ -173,7 +173,7 @@ namespace MongoDB.AsyncDriver
             var cursor = await operation.ExecuteAsync(connection, timeout, cancellationToken);
             if (await cursor.MoveNextAsync())
             {
-                return cursor.Current;
+                return cursor.Current.FirstOrDefault();
             }
             else
             {

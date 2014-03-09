@@ -49,14 +49,17 @@ namespace MongoDB.AsyncDriver
             var prefix = _databaseName + ".";
             while (await cursor.MoveNextAsync())
             {
-                var document = cursor.Current;
-                var name = (string)document["name"];
-                if (name.StartsWith(prefix))
+                var batch = cursor.Current;
+                foreach (var document in batch)
                 {
-                    var collectionName = name.Substring(prefix.Length);
-                    if (!collectionName.Contains('$') || collectionName.EndsWith(".oplog.$"))
+                    var name = (string)document["name"];
+                    if (name.StartsWith(prefix))
                     {
-                        result.Add(collectionName);
+                        var collectionName = name.Substring(prefix.Length);
+                        if (!collectionName.Contains('$') || collectionName.EndsWith(".oplog.$"))
+                        {
+                            result.Add(collectionName);
+                        }
                     }
                 }
             }
