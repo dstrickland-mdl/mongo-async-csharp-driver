@@ -46,6 +46,8 @@ namespace MongoDB.AsyncDriver
                -1,
                true,
                false,
+               false,
+               false,
                false);
         }
 

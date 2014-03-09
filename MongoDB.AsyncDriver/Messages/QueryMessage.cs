@@ -25,6 +25,7 @@ namespace MongoDB.AsyncDriver
     public class QueryMessage : RequestMessage
     {
         // fields
+        private readonly bool _awaitData;
         private readonly string _collectionName;
         private readonly string _databaseName;
         private readonly int _batchSize;
@@ -34,6 +35,7 @@ namespace MongoDB.AsyncDriver
         private readonly BsonDocument _query;
         private readonly int _skip;
         private readonly bool _slaveOk;
+        private readonly bool _tailableCursor;
 
         // constructors
         public QueryMessage(
@@ -46,7 +48,9 @@ namespace MongoDB.AsyncDriver
             int batchSize,
             bool slaveOk,
             bool partialOk,
-            bool noCursorTimeout)
+            bool noCursorTimeout,
+            bool tailableCursor,
+            bool awaitData)
             : base(requestId)
         {
             _databaseName = databaseName;
@@ -58,9 +62,16 @@ namespace MongoDB.AsyncDriver
             _slaveOk = slaveOk;
             _partialOk = partialOk;
             _noCursorTimeout = noCursorTimeout;
+            _tailableCursor = tailableCursor;
+            _awaitData = awaitData;
         }
 
         // properties
+        public bool AwaitData
+        {
+            get { return _awaitData; }
+        }
+
         public int BatchSize
         {
             get { return _batchSize; }
@@ -104,6 +115,11 @@ namespace MongoDB.AsyncDriver
         public bool SlaveOk
         {
             get { return _slaveOk; }
+        }
+
+        public bool TailableCursor
+        {
+            get { return _tailableCursor; }
         }
 
         // methods

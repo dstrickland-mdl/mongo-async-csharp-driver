@@ -54,6 +54,14 @@ namespace MongoDB.AsyncDriver
             {
                 flags |= QueryFlags.SlaveOk;
             }
+            if (message.TailableCursor)
+            {
+                flags |= QueryFlags.TailableCursor;
+                if (message.AwaitData)
+                {
+                    flags |= QueryFlags.AwaitData;
+                }
+            }
             return flags;
         }
 
@@ -81,9 +89,11 @@ namespace MongoDB.AsyncDriver
             var firstDot = fullCollectionName.IndexOf('.');
             var databaseName = fullCollectionName.Substring(0, firstDot);
             var collectionName = fullCollectionName.Substring(firstDot + 1);
+            var awaitData = flags.HasFlag(QueryFlags.AwaitData);
             var slaveOk = flags.HasFlag(QueryFlags.SlaveOk);
             var partialOk = flags.HasFlag(QueryFlags.Partial);
             var noCursorTimeout = flags.HasFlag(QueryFlags.NoCursorTimeout);
+            var tailableCursor = flags.HasFlag(QueryFlags.TailableCursor);
 
             return new QueryMessage(
                 requestId,
@@ -95,7 +105,9 @@ namespace MongoDB.AsyncDriver
                 batchSize,
                 slaveOk,
                 partialOk,
-                noCursorTimeout);
+                noCursorTimeout,
+                tailableCursor,
+                awaitData);
         }
 
         public void WriteMessage(QueryMessage message)

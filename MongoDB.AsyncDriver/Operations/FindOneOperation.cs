@@ -155,6 +155,7 @@ namespace MongoDB.AsyncDriver
 
             var operation = new FindOperation<TDocument>(
                 _additionalOptions,
+                false,
                 batchSize,
                 _collectionName,
                 _comment,
@@ -168,7 +169,8 @@ namespace MongoDB.AsyncDriver
                 _serializer,
                 _skip,
                 snapshot,
-                _sort);
+                _sort,
+                false);
 
             var cursor = await operation.ExecuteAsync(connection, timeout, cancellationToken);
             if (await cursor.MoveNextAsync())

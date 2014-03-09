@@ -39,6 +39,7 @@ namespace MongoDB.AsyncDriver
     {
         // fields
         private readonly BsonDocument _additionalOptions;
+        private readonly bool _awaitData = true;
         private readonly int _batchSize;
         private readonly string _collectionName;
         private readonly string _comment;
@@ -53,6 +54,7 @@ namespace MongoDB.AsyncDriver
         private readonly int _skip;
         private readonly bool? _snapshot;
         private readonly BsonDocument _sort;
+        private readonly bool _tailableCursor;
 
         // constructors
         public FindOperation(
@@ -69,6 +71,7 @@ namespace MongoDB.AsyncDriver
 
         internal FindOperation(
             BsonDocument additionalOptions,
+            bool awaitData,
             int batchSize,
             string collectionName,
             string comment,
@@ -82,9 +85,11 @@ namespace MongoDB.AsyncDriver
             IBsonSerializer<TDocument> serializer,
             int skip,
             bool? snapshot,
-            BsonDocument sort)
+            BsonDocument sort,
+            bool tailableCursor)
         {
             _additionalOptions = additionalOptions;
+            _awaitData = awaitData;
             _batchSize = batchSize;
             _collectionName = collectionName;
             _comment = comment;
@@ -99,12 +104,18 @@ namespace MongoDB.AsyncDriver
             _skip = skip;
             _snapshot = snapshot;
             _sort = sort;
+            _tailableCursor = tailableCursor;
         }
 
         // properties
         public BsonDocument AdditionalOptions
         {
             get { return _additionalOptions; }
+        }
+
+        public bool AwaitData
+        {
+            get { return _awaitData; }
         }
 
         public int BatchSize
@@ -177,6 +188,11 @@ namespace MongoDB.AsyncDriver
             get { return _sort; }
         }
 
+        public bool TailableCursor
+        {
+            get { return _tailableCursor; }
+        }
+
         // methods
         private QueryMessage CreateMessage(INode node)
         {
@@ -216,7 +232,9 @@ namespace MongoDB.AsyncDriver
                 firstBatchSize,
                 slaveOk,
                 _partialOk,
-                _noCursorTimeout);
+                _noCursorTimeout,
+                _tailableCursor,
+                _awaitData);
         }
 
         private BsonDocument CreateWrappedQuery(INode node)
@@ -284,6 +302,11 @@ namespace MongoDB.AsyncDriver
             return object.ReferenceEquals(_additionalOptions, value) ? this : new Builder(this) { _additionalOptions = value }.Build();
         }
 
+        public FindOperation<TDocument> WithAwaitData(bool value)
+        {
+            return (_awaitData == value) ? this : new Builder(this) { _awaitData = value }.Build();
+        }
+
         public FindOperation<TDocument> WithBatchSize(int value)
         {
             return (_batchSize == value) ? this : new Builder(this) { _batchSize = value }.Build();
@@ -344,6 +367,7 @@ namespace MongoDB.AsyncDriver
         {
             return new FindOperation<TOther>(
                 _additionalOptions,
+                _awaitData,
                 _batchSize,
                 _collectionName,
                 _comment,
@@ -357,7 +381,8 @@ namespace MongoDB.AsyncDriver
                 value,
                 _skip,
                 _snapshot,
-                _sort);
+                _sort,
+                _tailableCursor);
         }
 
         public FindOperation<TDocument> WithSkip(int value)
@@ -375,11 +400,17 @@ namespace MongoDB.AsyncDriver
             return object.ReferenceEquals(_sort, value) ? this : new Builder(this) { _sort = value }.Build();
         }
 
+        public FindOperation<TDocument> WithTailableCursor(bool value)
+        {
+            return (_tailableCursor == value) ? this : new Builder(this) { _tailableCursor = value }.Build();
+        }
+
         // nested types
         private struct Builder
         {
             // fields
             public BsonDocument _additionalOptions;
+            public bool _awaitData;
             public int _batchSize;
             public string _collectionName;
             public string _comment;
@@ -394,11 +425,13 @@ namespace MongoDB.AsyncDriver
             public int _skip;
             public bool? _snapshot;
             public BsonDocument _sort;
+            public bool _tailableCursor;
 
             // constructors
             public Builder(FindOperation<TDocument> other)
             {
                 _additionalOptions = other.AdditionalOptions;
+                _awaitData = other.AwaitData;
                 _batchSize = other.BatchSize;
                 _collectionName = other.CollectionName;
                 _comment = other.Comment;
@@ -413,6 +446,7 @@ namespace MongoDB.AsyncDriver
                 _skip = other.Skip;
                 _snapshot = other.Snapshot;
                 _sort = other.Sort;
+                _tailableCursor = other.TailableCursor;
             }
 
             // methods
@@ -420,6 +454,7 @@ namespace MongoDB.AsyncDriver
             {
                 return new FindOperation<TDocument>(
                     _additionalOptions,
+                    _awaitData,
                     _batchSize,
                     _collectionName,
                     _comment,
@@ -433,7 +468,8 @@ namespace MongoDB.AsyncDriver
                     _serializer,
                     _skip,
                     _snapshot,
-                    _sort);
+                    _sort,
+                    _tailableCursor);
             }
         }
     }
