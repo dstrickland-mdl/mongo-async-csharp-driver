@@ -37,6 +37,8 @@ namespace MongoDB.AsyncDriver
                     return CreateReplicaSet(settings);
                 case ClusterType.StandAlone:
                     return CreateStandaloneCluster(settings);
+                case ClusterType.Sharded:
+                    return CreateStandaloneCluster(settings);
                 default:
                     throw new InvalidOperationException(string.Format("Unsupported cluster type: {0}.", settings.ClusterType));
             }
@@ -62,6 +64,18 @@ namespace MongoDB.AsyncDriver
             }
             return replicaSet;
         }
+
+        public static ReplicaSet CreateSharded(ClusterSettings settings)
+        {
+            var replicaSet = new ShardedCluster(settings);
+            foreach (var endPoint in settings.EndPoints)
+            {
+                var node = new Node(replicaSet, endPoint, settings.NodeSettings);
+                replicaSet.AddNode(node);
+            }
+            return replicaSet;
+        }
+
 
         public static StandaloneCluster CreateStandaloneCluster(ClusterSettings settings)
         {

@@ -53,6 +53,7 @@
     <Compile Include="Authentication\Protocols\OriginalAuthenticationProtocol.cs" />
     <Compile Include="Authentication\Protocols\X509AuthenticationProtocol.cs" />
     <Compile Include="Clusters\ClusterSettings.cs" />
+    <Compile Include="Clusters\ShardedClusterInfo.cs" />
     <Compile Include="Nodes\WrappedNode.cs" />
     <Compile Include="Clusters\Events\ClusterInfoChangedEventArgs.cs" />
     <Compile Include="Clusters\Events\IClusterListener.cs" />

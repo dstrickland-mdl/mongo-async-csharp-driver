@@ -28,6 +28,28 @@ namespace MongoDB.AsyncDriver
     /// </summary>
     public class ShardedCluster : ICluster
     {
+        // fields
+        private readonly CancellationTokenSource _backgroundTaskCancellationTokenSource = new CancellationTokenSource();
+        private bool _disposed;
+        private readonly object _lock = new object();
+        private ReplicaSetInfo _info;
+        private TaskCompletionSource<bool> _infoChangedTaskCompletionSource;
+        private readonly AsyncQueue<NodeInfo> _nodeInfoChangedQueue = new AsyncQueue<NodeInfo>();
+        private readonly List<Node> _nodes = new List<Node>();
+        private IWritableNode _primary;
+        private readonly ClusterSettings _settings;
+
+        // constructors
+        public ShardedCluster(ClusterSettings settings)
+        {
+            _settings = settings;
+            var nodes = settings.EndPoints.Select(e => NodeInfo.Create(e, NodeState.Disconnected, null, null));
+            _info = new ReplicaSetInfo(ClusterType.ReplicaSet, ClusterState.Disconnected, nodes, null, 0);
+            _infoChangedTaskCompletionSource = new TaskCompletionSource<bool>();
+        }
+
+
+
         // events
         public event EventHandler InfoChanged;
 

@@ -31,7 +31,8 @@ namespace ReplicaSetTestApplication
             try
             {
                 // var uri = "mongodb://username:password@thinkmate:10001/?clusterType=replicaSet;endPoint=thinkmate:10002;endPoint=thinkmate:10003";
-                var uri = "mongodb://username:password@thinkmate:10001/?clusterType=replicaSet";
+                var uri2 = "mongodb://username:password@thinkmate:10001/?clusterType=replicaSet";
+                var uri = "mongodb://10.253.76.8:29012/?clusterType=replicaSet&ping=1s";
                 var settings = new ClusterSettings(uri);
 
                 var logger = new Logger(Console.Out, new StreamWriter("log.txt"));
